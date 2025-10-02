@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Large/raw data (keep local)
+cifar10_data/
+
+# Model checkpoints except the best one (adjust if you want to ignore all)
+# *.pth
+# Keep the main model file
+
+# Ignore notebooks per user request
+Project.ipynb
+Transfer learning.ipynb
+
+# Misc
+.DS_Store
+.env
