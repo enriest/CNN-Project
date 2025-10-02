@@ -15,10 +15,6 @@ cifar10_data/
 # *.pth
 # Keep the main model file
 
-# Ignore notebooks per user request
-Project.ipynb
-Transfer learning.ipynb
-
 # Misc
 .DS_Store
 .env
