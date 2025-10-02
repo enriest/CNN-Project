@@ -1,20 +1,25 @@
-# Virtual environment
+# Deployment branch .gitignore (minimal)
+
+# Exclude local virtual env
 .venv/
 
-# Byte-compiled / cache
+# Exclude notebooks from deployment build context
+Project.ipynb
+Transfer learning.ipynb
+
+# Python cache
 __pycache__/
 *.py[cod]
-
-# Jupyter checkpoints
 .ipynb_checkpoints/
 
-# Large/raw data (keep local)
-cifar10_data/
-
-# Model checkpoints except the best one (adjust if you want to ignore all)
-# *.pth
-# Keep the main model file
-
-# Misc
+# OS / editor noise
 .DS_Store
 .env
+*.log
+
+# Data (not needed at runtime if model file is bundled)
+cifar10_data/
+
+# Keep only deployed model file
+*.pth
+!best_model_cifar10.pth
