@@ -101,20 +101,35 @@ def predict():
     with torch.no_grad():
         outputs = model(tensor)
         probs = torch.softmax(outputs, dim=1).cpu().numpy()[0]
-    top_idx = int(probs.argmax())
 
-    return jsonify({
-        "prediction": CLASS_NAMES[top_idx],
-        "probability": float(probs[top_idx]),
-        "class_probabilities": {CLASS_NAMES[i]: float(p) for i, p in enumerate(probs)}
-    })
+    # Sort probabilities descending
+    class_probs = sorted([(CLASS_NAMES[i], float(p)) for i, p in enumerate(probs)], key=lambda x: x[1], reverse=True)
+
+    # Render HTML result page with sorted % and back button
+    html = [
+        "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8' />",
+        "<title>Prediction Result</title>",
+        "<style>body{font-family:system-ui,Arial,sans-serif;max-width:480px;margin:40px auto;padding:0 1rem;color:#222}h1{font-size:1.3rem}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{padding:.5rem;text-align:left;border-bottom:1px solid #eee}tr:first-child{background:#e6f7ff;font-weight:bold}tr:hover{background:#f5f5f5}button{margin-top:1.5rem;cursor:pointer;background:#0366d6;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:4px;font-size:.95rem}img{max-width:120px;display:block;margin:1rem auto 0 auto;border-radius:8px;box-shadow:0 2px 8px #0001}</style>",
+        "</head><body>",
+        "<h1>Prediction Result</h1>"
+    ]
+    # Show uploaded image preview (optional, if you want to display it)
+    # html.append(f"<img src='data:image/png;base64,{base64.b64encode(img_bytes).decode()}' alt='Uploaded image' />")
+    html.append("<table><tr><th>Class</th><th>Probability (%)</th></tr>")
+    for cname, prob in class_probs:
+        html.append(f"<tr><td>{cname}</td><td>{prob*100:.2f}%</td></tr>")
+    html.append("</table>")
+    html.append(f"<p><b>Top prediction:</b> {class_probs[0][0]} ({class_probs[0][1]*100:.2f}%)</p>")
+    html.append("<form action='/' method='get'><button type='submit'>&larr; Back / Upload another image</button></form>")
+    html.append("</body></html>")
+    return "".join(html)
 
 
 @app.route("/", methods=["GET"])
 def upload_form():
     """Lightweight HTML form for manual testing in a browser."""
     return (
-        """<!DOCTYPE html><html lang='en'>\n<head>\n<meta charset='UTF-8' />\n<title>CIFAR-10 Predictor</title>\n<style>body{font-family:system-ui,Arial,sans-serif;max-width:640px;margin:40px auto;padding:0 1rem;color:#222}h1{font-size:1.4rem;margin-bottom:.5rem}form{border:1px solid #ccc;padding:1rem;border-radius:8px;background:#fafafa}#preview{max-width:160px;margin-top:.5rem;display:none;border:1px solid #ddd;padding:4px;border-radius:4px}button{cursor:pointer;background:#0366d6;color:#fff;border:none;padding:.6rem 1rem;border-radius:4px;font-size:.95rem}button:disabled{opacity:.5;cursor:not-allowed}code{background:#eee;padding:2px 4px;border-radius:4px;font-size:.85rem;display:inline-block;margin-top:4px}#result pre{background:#111;color:#0f0;padding:.75rem;border-radius:6px;overflow:auto;font-size:.8rem}footer{margin-top:2rem;font-size:.7rem;color:#666}</style>\n</head><body>\n<h1>CIFAR-10 Image Prediction</h1>\n<p>Select an image (32x32 or larger) and submit to get class probabilities.</p>\n<form id='predict-form'>\n  <input type='file' id='file' name='file' accept='image/*' required />\n  <div><img id='preview' alt='preview'></div>\n  <div style='margin-top:1rem;display:flex;gap:.5rem;align-items:center'>\n    <button type='submit' id='btn'>Predict</button>\n    <span id='status'></span>\n  </div>\n</form>\n<section id='result'></section>\n<footer>Endpoint: <code>/predict</code> | Health: <code>/health</code></footer>\n<script>\nconst form=document.getElementById('predict-form');\nconst fileInput=document.getElementById('file');\nconst statusEl=document.getElementById('status');\nconst resultEl=document.getElementById('result');\nconst preview=document.getElementById('preview');\nfileInput.addEventListener('change',()=>{const f=fileInput.files[0];if(!f){preview.style.display='none';return;}const url=URL.createObjectURL(f);preview.src=url;preview.style.display='block';});\nform.addEventListener('submit',async(e)=>{e.preventDefault();resultEl.innerHTML='';statusEl.textContent='Uploading...';const btn=document.getElementById('btn');btn.disabled=true;try{const fd=new FormData();fd.append('file',fileInput.files[0]);const res=await fetch('/predict',{method:'POST',body:fd});const data=await res.json();if(!res.ok){throw new Error(data.error||'Request failed');}statusEl.textContent='Done';resultEl.innerHTML='<h2>Result</h2><pre>'+JSON.stringify(data,null,2)+'</pre>'; }catch(err){statusEl.textContent='Error';resultEl.innerHTML='<p style="color:red">'+err.message+'</p>'; }finally{btn.disabled=false;} });\n</script>\n</body></html>"""
+        """<!DOCTYPE html><html lang='en'>\n<head>\n<meta charset='UTF-8' />\n<title>CIFAR-10 Predictor</title>\n<style>body{font-family:system-ui,Arial,sans-serif;max-width:640px;margin:40px auto;padding:0 1rem;color:#222}h1{font-size:1.4rem;margin-bottom:.5rem}form{border:1px solid #ccc;padding:1rem;border-radius:8px;background:#fafafa}#preview{max-width:160px;margin-top:.5rem;display:none;border:1px solid #ddd;padding:4px;border-radius:4px}button{cursor:pointer;background:#0366d6;color:#fff;border:none;padding:.6rem 1rem;border-radius:4px;font-size:.95rem}button:disabled{opacity:.5;cursor:not-allowed}code{background:#eee;padding:2px 4px;border-radius:4px;font-size:.85rem;display:inline-block;margin-top:4px}#result pre{background:#111;color:#0f0;padding:.75rem;border-radius:6px;overflow:auto;font-size:.8rem}footer{margin-top:2rem;font-size:.7rem;color:#666}</style>\n</head><body>\n<h1>CIFAR-10 Image Prediction</h1>\n<p>Select an image (32x32 or larger) and submit to get class probabilities.</p>\n<form id='predict-form' enctype='multipart/form-data' method='post' action='/predict'>\n  <input type='file' id='file' name='file' accept='image/*' required />\n  <div><img id='preview' alt='preview'></div>\n  <div style='margin-top:1rem;display:flex;gap:.5rem;align-items:center'>\n    <button type='submit' id='btn'>Predict</button>\n    <span id='status'></span>\n  </div>\n</form>\n<section id='result'></section>\n<footer>Endpoint: <code>/predict</code> | Health: <code>/health</code></footer>\n<script>\nconst form=document.getElementById('predict-form');\nconst fileInput=document.getElementById('file');\nconst preview=document.getElementById('preview');\nfileInput.addEventListener('change',()=>{const f=fileInput.files[0];if(!f){preview.style.display='none';return;}const url=URL.createObjectURL(f);preview.src=url;preview.style.display='block';});\n</script>\n</body></html>"""
     )
 
 
