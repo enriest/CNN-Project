@@ -104,22 +104,32 @@ def predict():
 
     # Sort probabilities descending
     class_probs = sorted([(CLASS_NAMES[i], float(p)) for i, p in enumerate(probs)], key=lambda x: x[1], reverse=True)
+    top10 = class_probs[:10]
+    top_class, top_prob = top10[0]
 
-    # Render HTML result page with sorted % and back button
+    # Dynamic interpretation text
+    interp = f"\ud83d\udcca Interpretation:<br><br>"
+    interp += f"The model is <b>{top_prob*100:.2f}%</b> confident that this image shows a <b>{top_class}</b>. "
+    if top_prob < 0.5:
+        interp += "The confidence is relatively low, which might indicate the image is ambiguous or doesn't clearly match any CIFAR-10 category."
+    elif top_prob < 0.8:
+        interp += "The confidence is moderate. The image likely matches this class, but there may be some ambiguity."
+    else:
+        interp += "The confidence is high. The model is quite certain about this prediction."
+
     html = [
         "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8' />",
         "<title>Prediction Result</title>",
-        "<style>body{font-family:system-ui,Arial,sans-serif;max-width:480px;margin:40px auto;padding:0 1rem;color:#222}h1{font-size:1.3rem}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{padding:.5rem;text-align:left;border-bottom:1px solid #eee}tr:first-child{background:#e6f7ff;font-weight:bold}tr:hover{background:#f5f5f5}button{margin-top:1.5rem;cursor:pointer;background:#0366d6;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:4px;font-size:.95rem}img{max-width:120px;display:block;margin:1rem auto 0 auto;border-radius:8px;box-shadow:0 2px 8px #0001}</style>",
+        "<style>body{font-family:system-ui,Arial,sans-serif;max-width:480px;margin:40px auto;padding:0 1rem;color:#222;background:#181818}h1{font-size:1.3rem;color:#fff}#resultbox{background:#111;color:#fff;border-radius:10px;padding:1.2rem 1.2rem 1.2rem 1.2rem;box-shadow:0 2px 12px #0003;margin:2rem 0 1.5rem 0}table{border-collapse:collapse;width:100%;margin:0 0 1rem 0}th,td{padding:.5rem;text-align:left}th{color:#4BE8E0}tr{border-bottom:1px solid #222}tr:last-child{border-bottom:none}tr:hover{background:#232323}button{margin-top:1.5rem;cursor:pointer;background:#0366d6;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:4px;font-size:.95rem}#interpbox{background:#222;color:#fff;border-radius:8px;padding:1rem 1.2rem;margin-bottom:2rem;font-size:1.05rem;line-height:1.6;box-shadow:0 1px 6px #0002}a{color:#4BE8E0;text-decoration:none}</style>",
         "</head><body>",
-        "<h1>Prediction Result</h1>"
+        "<h1>Prediction Result</h1>",
+        "<div id='resultbox'>",
+        "<table><tr><th>Class</th><th>Probability (%)</th></tr>"
     ]
-    # Show uploaded image preview (optional, if you want to display it)
-    # html.append(f"<img src='data:image/png;base64,{base64.b64encode(img_bytes).decode()}' alt='Uploaded image' />")
-    html.append("<table><tr><th>Class</th><th>Probability (%)</th></tr>")
-    for cname, prob in class_probs:
+    for cname, prob in top10:
         html.append(f"<tr><td>{cname}</td><td>{prob*100:.2f}%</td></tr>")
-    html.append("</table>")
-    html.append(f"<p><b>Top prediction:</b> {class_probs[0][0]} ({class_probs[0][1]*100:.2f}%)</p>")
+    html.append("</table></div>")
+    html.append(f"<div id='interpbox'>{interp}</div>")
     html.append("<form action='/' method='get'><button type='submit'>&larr; Back / Upload another image</button></form>")
     html.append("</body></html>")
     return "".join(html)
