@@ -17,8 +17,11 @@ __pycache__/
 .env
 *.log
 
+
 # Data (not needed at runtime if model file is bundled)
 cifar10_data/
+data/
+data/cifar-10-python.tar.gz
 
 # Keep only deployed model file
 *.pth
