@@ -84,62 +84,65 @@ Students will build a Convolutional Neural Network (CNN) model to classify image
 - Provide guidance and resources for troubleshooting common issues during model training and evaluation.
 - Students will discuss their approaches and findings in class during assessment evaluation sessions.
 
-## Deployment (Railway) - Quick Start
+## Deployment Instructions
 
-This repository now includes a minimal Flask inference API (`app.py`) serving predictions for CIFAR-10 using `best_model_cifar10.pth`.
+To deploy this project (Flask app for image classification):
 
-### Added Deployment Files
-| File | Purpose |
-|------|---------|
-| `app.py` | Flask server with `/health` and `/predict` |
-| `requirements.txt` | Runtime dependencies |
-| `Procfile` | Process definition (web) |
-| `railway.toml` | Railway deploy config |
-| `.gitignore` | Ignore notebooks, data, venv |
+1. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### 1. Local Run
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # macOS/Linux
-pip install --upgrade pip
-pip install -r requirements.txt
-python app.py
-# Test
-curl http://localhost:8000/health
-curl -X POST -F "file=@some_image.png" http://localhost:8000/predict
-```
+2. **(Optional) Download the trained model**
+   - Make sure `best_model_cifar10.pth` is present in the project or Deployment folder.
 
-### 2. Model Saving Format
-If your checkpoint is only a state_dict:
-```python
-torch.save({'state_dict': model.state_dict()}, 'best_model_cifar10.pth')
-```
-The loader also accepts a full model object (saved via `torch.save(model, path)`).
+3. **Run the Flask app locally**
+   ```bash
+   cd Deployment
+   python app.py
+   ```
+   The app will be available at [http://localhost:8000](http://localhost:8000)
 
-### 3. Deploy to Railway
-1. Push repo to GitHub (include model file if small; if large, store externally + download in a build step).
-2. In Railway: New Project -> Deploy from GitHub.
-3. Railway installs `requirements.txt` and runs `python app.py` (from `Procfile`).
-4. Open the generated URL:
-   * `/health` returns `{ "status": "ok" }`.
-   * `/predict` expects multipart form-data with key `file`.
+4. **Deploy to Railway or another cloud platform**
+   - Make sure you have a `Procfile` and `requirements.txt` in the `Deployment` folder.
+   - Push your code to GitHub.
+   - Connect your repository to [Railway](https://railway.app/) or another PaaS.
+   - Set the web service to run:
+     ```
+     python app.py
+     ```
+   - The deployed app will be available at the URL provided by the platform.
 
-Example request after deploy:
-```bash
-curl -X POST -F "file=@some_image.png" https://YOUR-SUBDOMAIN.up.railway.app/predict
-```
+5. **Usage**
+   - Open the app in your browser.
+   - Upload an image to get predictions and class probabilities.
 
-### 4. Environment Variables
-Set `MODEL_PATH` if the model filename/location changes.
+For more details, see the comments in `Deployment/app.py` and the project notebooks.
 
-### 5. Improvements To Consider
-* Add authentication (API key header)
-* Add Swagger UI docs
-* Batch prediction endpoint
-* Caching repeated images (hash + Redis)
-* Transfer learning endpoints (load different models via query)
+## Repository File Structure
 
----
-Deployment scaffold included to satisfy the Model Deployment assessment component.
+- `Project.ipynb` — Main Jupyter notebook for model development, training, and evaluation on CIFAR-10.
+- `Transfer learning.ipynb` — Notebook focused on applying and comparing transfer learning approaches.
+- `requirements.txt` — List of all Python dependencies needed to run the project and deployment.
+- `README.md` — This file. Project overview, instructions, and documentation.
+- `CNN Project Report.pdf` — Final project report in PDF format.
+- `CNN Project.pptx` — Project presentation slides.
+- `best_model_cifar10.pth` — Saved PyTorch model weights for the best custom CNN.
+- `best_transfer_model_efficientnet_b0.pth` — Saved weights for the best transfer learning model (EfficientNet-B0).
+- `model_stride.pth` — Reference or pre-trained model weights for comparison.
+- `cifar10_data/` — Folder containing the CIFAR-10 dataset and extracted files.
+    - `cifar-10-python.tar.gz` — Downloaded CIFAR-10 archive.
+    - `cifar-10-batches-py/` — Extracted CIFAR-10 data batches.
+- `data/` — (Duplicate or alternative) Folder containing the CIFAR-10 dataset and extracted files.
+- `Deployment/` — Folder containing all files for web app deployment:
+    - `app.py` — Flask web application for image upload and prediction.
+    - `requirements.txt` — Dependencies for deployment (can be a copy or subset of the main requirements).
+    - `Procfile` — Specifies the command to run the app on cloud platforms.
+    - `railway.toml` — Railway deployment configuration (if using Railway).
+    - `best_model_cifar10.pth`, `model_stride.pth` — Model weights for use in the deployed app.
 
-# CNN-Project
+You can use or modify these files as needed for local development, training, or deployment.
+
+THIS IS THE PROJECT DEPLOYED IN RAILWAY: https://cnn-project.up.railway.app
+*ACCESS MIGHT BE FINISHED AFTER SOME TIME.
+

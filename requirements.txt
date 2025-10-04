@@ -1,8 +1,39 @@
-torch
-torchvision
-torchaudio
-numpy
-pillow
-flask
-python-dotenv
-Werkzeug
+
+# Core ML and Deep Learning
+torch==2.1.0+cpu
+torchvision==0.16.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+
+# Data manipulation and analysis
+numpy>=1.21.0
+pandas>=1.3.0
+
+
+# Visualization
+matplotlib>=3.5.0
+plotly>=5.0.0
+
+
+# Image processing
+Pillow>=9.0.0
+
+
+# Model analysis and metrics
+scikit-learn>=1.0.0
+torchinfo>=1.7.0
+
+
+# Web framework for deployment
+Flask==3.0.3
+
+
+# HTTP requests (for dataset download)
+requests>=2.25.0
+
+# Jupyter for notebooks
+jupyterlab>=3.0.0
+notebook>=6.0.0
+
+# Progress bar for training loops (optional, but often used)
+tqdm>=4.0.0
